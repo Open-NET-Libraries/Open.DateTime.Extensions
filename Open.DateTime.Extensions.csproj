@@ -8,8 +8,13 @@ Code savers like: .Delta(time?)</Description>
     <Authors>electricessence</Authors>
     <Company />
     <Product />
-    <PackageLicenseUrl>https://github.com/electricessence/Open/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl>https://github.com/electricessence/Open.DateTime.Extensions/blob/master/LISCENSE.md</PackageLicenseUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright>https://github.com/electricessence/Open.DateTime.Extensions/blob/master/LISCENSE.md</Copyright>
+    <PackageProjectUrl>https://github.com/electricessence/Open.DateTime.Extensions/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/electricessence/Open.DateTime.Extensions/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>dotnet, dotnet-core, dotnetcore, cs, datetime, extensions</PackageTags>
   </PropertyGroup>
 
 </Project>
