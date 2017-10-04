@@ -256,11 +256,10 @@ namespace System
 
 		public static TimeSpan From(object numerictime, Types expectedType, bool assertType)
 		{
-			var dddd = numerictime as string;
-			if (dddd != null)
-				return From(dddd, expectedType);
+            if (numerictime is string dddd)
+                return From(dddd, expectedType);
 
-			switch (expectedType)
+            switch (expectedType)
 			{
 				case Types.HoursMinutesSeconds:
 					if (!assertType || numerictime is int)
