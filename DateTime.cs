@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
-using Open.Formatting;
+using Open.Numeric.Precision;
+using Open;
 
 namespace System
 {
@@ -138,9 +139,9 @@ namespace System
 		public static DateTime Parse(string date, string time, DateTime defaultValue)
 		{
 			DateTime result = defaultValue;
-			if (!date.IsNullOrWhiteSpace() && DateTime.TryParse(date, out result))
+			if (!String.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out result))
 			{
-				if (!time.IsNullOrWhiteSpace())
+				if (!String.IsNullOrWhiteSpace(time))
 				{
 					TimeSpan ts = TimeSpan.Zero;
 					if (NumericTime.TimeDigitsPattern.IsMatch(time))

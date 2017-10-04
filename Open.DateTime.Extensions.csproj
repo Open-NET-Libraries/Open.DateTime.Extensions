@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <Description>Simple set of DateTime extensions extensions.
@@ -16,5 +15,8 @@ Code savers like: .Delta(time?)</Description>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, datetime, extensions</PackageTags>
   </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Open.Numeric" Version="1.0.0" />
+    <PackageReference Include="Open.Range" Version="1.0.0" />
+  </ItemGroup>
 </Project>
