@@ -16,7 +16,7 @@ Code savers like: .Delta(time?)</Description>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, datetime, extensions</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Open.Numeric" Version="1.0.0" />
+    <PackageReference Include="Open.Numeric" Version="1.0.1" />
     <PackageReference Include="Open.Range" Version="1.0.0" />
   </ItemGroup>
 </Project>
