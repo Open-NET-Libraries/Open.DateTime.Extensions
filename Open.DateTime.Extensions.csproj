@@ -14,7 +14,7 @@ Code savers like: .Delta(time?)</Description>
     <RepositoryUrl>https://github.com/electricessence/Open.DateTime.Extensions/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, datetime, extensions</PackageTags>
-    <Version>1.0.1</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
   <ItemGroup>
     <None Remove=".git" />
@@ -24,6 +24,6 @@ Code savers like: .Delta(time?)</Description>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Open.Numeric" Version="1.0.5" />
-    <PackageReference Include="Open.Range" Version="1.0.0" />
+    <PackageReference Include="Open.Range" Version="1.0.2" />
   </ItemGroup>
 </Project>
