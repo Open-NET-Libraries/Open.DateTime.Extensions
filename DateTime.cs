@@ -1,8 +1,8 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using System.Diagnostics;
+﻿using Open;
 using Open.Numeric.Precision;
-using Open;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
+using System.Text.RegularExpressions;
 
 namespace System
 {
@@ -16,8 +16,9 @@ namespace System
 		public static DateTime ToDateTime(this TimeSpan time)
 		{
 			var ticks = time.Ticks;
-			if(ticks<0 || ticks>3155378975999999999)
-				throw new ArgumentOutOfRangeException("time");
+			if (ticks < 0 || ticks > 3155378975999999999)
+				throw new ArgumentOutOfRangeException(nameof(time));
+			Contract.EndContractBlock();
 
 			return new DateTime(ticks);
 		}
@@ -39,8 +40,9 @@ namespace System
 
 		public static TimeSpan ExcuteAndMeasureDuration(this Action closure)
 		{
-			if(closure==null)
+			if (closure == null)
 				throw new NullReferenceException();
+			Contract.EndContractBlock();
 
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -51,15 +53,16 @@ namespace System
 
 		public static string ElapsedTimeString(this Stopwatch target)
 		{
-			if(target==null)
+			if (target == null)
 				throw new NullReferenceException();
 			return target.Elapsed.ToStringVerbose();
 		}
 
 		public static TimeSpan RemainingTime(this Stopwatch target, int completed, int total)
 		{
-			if(target==null)
+			if (target == null)
 				throw new NullReferenceException();
+			Contract.EndContractBlock();
 
 			if (completed == 0 || total == 0)
 				return TimeSpan.MaxValue;
@@ -74,8 +77,9 @@ namespace System
 
 		public static string RemainingTimeString(this Stopwatch target, int completed, int total)
 		{
-			if(target==null)
+			if (target == null)
 				throw new NullReferenceException();
+			Contract.EndContractBlock();
 
 			return target.RemainingTime(completed, total).ToStringVerbose();
 		}
@@ -207,16 +211,18 @@ namespace System
 
 		public static TimeSpan DivideBy(this TimeSpan target, long divisor)
 		{
-			if(divisor==0)
-				throw new ArgumentException("Cannot be zero.","divisor");
+			if (divisor == 0)
+				throw new ArgumentException("Cannot be zero.", "divisor");
+			Contract.EndContractBlock();
 
 			return TimeSpan.FromTicks(target.Ticks / divisor);
 		}
 
 		public static TimeSpan DivideBy(this TimeSpan target, int divisor)
 		{
-			if(divisor==0)
-				throw new ArgumentException("Cannot be zero.","divisor");
+			if (divisor == 0)
+				throw new ArgumentException("Cannot be zero.", "divisor");
+
 
 			return TimeSpan.FromTicks(target.Ticks / divisor);
 		}
@@ -256,10 +262,10 @@ namespace System
 
 		public static TimeSpan From(object numerictime, Types expectedType, bool assertType)
 		{
-            if (numerictime is string dddd)
-                return From(dddd, expectedType);
+			if (numerictime is string dddd)
+				return From(dddd, expectedType);
 
-            switch (expectedType)
+			switch (expectedType)
 			{
 				case Types.HoursMinutesSeconds:
 					if (!assertType || numerictime is int)
@@ -301,16 +307,17 @@ namespace System
 
 		public static TimeSpan From(string numerictime, Types type)
 		{
-			if(numerictime!=null)
-				throw new ArgumentNullException("numerictime");
+			if (numerictime != null)
+				throw new ArgumentNullException(nameof(numerictime));
+			Contract.EndContractBlock();
 
 			return From(int.Parse(numerictime), type);
 		}
 
 		public static TimeSpan FromUnknownType(string numerictime)
 		{
-			if(numerictime!=null)
-				throw new ArgumentNullException("numerictime");
+			if (numerictime != null)
+				throw new ArgumentNullException(nameof(numerictime));
 			if (numerictime.Length > 4)
 				return From(int.Parse(numerictime), Types.HoursMinutesSeconds);
 			if (numerictime.Length > 2)
@@ -322,8 +329,10 @@ namespace System
 
 		public static DateTime From(string dddd, Types expectedType, DateTime date)
 		{
-			if(dddd!=null)
-				throw new ArgumentNullException("numerictime");
+			if (dddd != null)
+				throw new ArgumentNullException(nameof(dddd));
+			Contract.EndContractBlock();
+
 			return From(From(dddd, expectedType), date);
 		}
 
@@ -363,8 +372,9 @@ namespace System
 
 		private static int Reduce(ref int reduction, int factor)
 		{
-			if(factor<=0)
-				throw new ArgumentException("factor");
+			if (factor <= 0)
+				throw new ArgumentException(nameof(factor));
+			Contract.EndContractBlock();
 
 			int remainder = reduction % factor;
 			reduction = (reduction - remainder) / factor;
@@ -381,7 +391,8 @@ namespace System
 		public static TimeSpan From(int dddddd, Types type)
 		{
 			if (dddddd < 0 || dddddd >= 240000)
-				throw new ArgumentOutOfRangeException("dddddd");
+				throw new ArgumentOutOfRangeException(nameof(dddddd));
+			Contract.EndContractBlock();
 
 			int d = dddddd;
 			int seconds = (type == Types.HoursMinutesSeconds) ? Reduce(ref d) : 0;
@@ -413,7 +424,8 @@ namespace System
 		public static TimeSpan From(ushort dddd)
 		{
 			if (dddd >= 2400)
-				throw new ArgumentOutOfRangeException("dddd");
+				throw new ArgumentOutOfRangeException(nameof(dddd));
+			Contract.EndContractBlock();
 
 			var d = (int)dddd;
 			int minutes = Reduce(ref d);
@@ -425,7 +437,8 @@ namespace System
 		public static TimeSpan From(byte dd)
 		{
 			if (dd >= 24)
-				throw new ArgumentOutOfRangeException("dd");
+				throw new ArgumentOutOfRangeException(nameof(dd));
+			Contract.EndContractBlock();
 
 			return From(dd, 0, 0);
 		}
