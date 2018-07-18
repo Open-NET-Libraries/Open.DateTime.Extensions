@@ -19,6 +19,12 @@ Code savers like: .Delta(time?)</Description>
     <FileVersion>1.1.0.0</FileVersion>
     <PackageReleaseNotes>Updated to .NET Standard for compatability.</PackageReleaseNotes>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove=".git" />
     <None Remove=".gitignore" />
@@ -26,7 +32,7 @@ Code savers like: .Delta(time?)</Description>
     <None Remove="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Open.Numeric" Version="1.1.0" />
+    <PackageReference Include="Open.Numeric" Version="1.2.0" />
     <PackageReference Include="Open.Range" Version="1.1.0" />
   </ItemGroup>
 </Project>

@@ -92,28 +92,28 @@ namespace System
 			if (minimumIncrement == null)
 				minimumIncrement = TimeSpan.FromSeconds(1);
 
-			string result = String.Empty;
+			var result = string.Empty;
 
 			if (time.Ticks > 0)
 			{
-				bool isMinimum = time <= minimumIncrement;
-				double days = Math.Round(10 * time.TotalDays) / 10;
+				var isMinimum = time <= minimumIncrement;
+				var days = Math.Round(10 * time.TotalDays) / 10;
 				if (days > 2 || isMinimum && minimumIncrement >= TimeSpan.FromDays(1))
 					result = days + " days";
 				else
 				{
 
-					double hours = Math.Round(10 * time.TotalHours) / 10;
+					var hours = Math.Round(10 * time.TotalHours) / 10;
 					if (hours > 1 || isMinimum && minimumIncrement >= TimeSpan.FromHours(1))
 						result = hours + " hours";
 					else
 					{
-						double minutes = time.TotalMinutes;
+						var minutes = time.TotalMinutes;
 						if (minutes > 1.5 || isMinimum && minimumIncrement >= TimeSpan.FromMinutes(1))
 							result = (minutes > 10 ? Math.Ceiling(minutes) : (Math.Ceiling(minutes * 10) / 10)) + " minutes";
 						else
 						{
-							double seconds = time.TotalSeconds;
+							var seconds = time.TotalSeconds;
 							if (seconds.IsPreciseEqual(1) || isMinimum && minimumIncrement >= TimeSpan.FromSeconds(1))
 								result = "1 second";
 							else if (seconds > 1)
@@ -142,12 +142,12 @@ namespace System
 
 		public static DateTime Parse(string date, string time, DateTime defaultValue)
 		{
-			DateTime result = defaultValue;
-			if (!String.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out result))
+			var result = defaultValue;
+			if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out result))
 			{
-				if (!String.IsNullOrWhiteSpace(time))
+				if (!string.IsNullOrWhiteSpace(time))
 				{
-					TimeSpan ts = TimeSpan.Zero;
+					var ts = TimeSpan.Zero;
 					if (NumericTime.TimeDigitsPattern.IsMatch(time))
 						ts = NumericTime.FromUnknownType(time);
 					else
@@ -156,7 +156,7 @@ namespace System
 					if (ts != TimeSpan.Zero)
 					{
 						// Within range?
-						long ticks = result.Ticks + ts.Ticks;
+						var ticks = result.Ticks + ts.Ticks;
 
 						if (ticks < DateTime.MinValue.Ticks)
 							return DateTime.MinValue;
@@ -177,7 +177,7 @@ namespace System
 			var startDate = defaultStart;
 			var endDate = defaultEnd;
 
-			if (!String.IsNullOrWhiteSpace(source))
+			if (!string.IsNullOrWhiteSpace(source))
 			{
 				var exactMonth = EXACTMONTH.Match(source);
 				if (exactMonth.Success)
@@ -187,12 +187,12 @@ namespace System
 				}
 				else
 				{
-					string[] dd = source.Split('-');
-					string left = dd[0].Trim();
-					string right = dd.Length != 1 ? (dd[1] ?? String.Empty).Trim() : String.Empty;
-					if (!String.IsNullOrWhiteSpace(left))
+					var dd = source.Split('-');
+					var left = dd[0].Trim();
+					var right = dd.Length != 1 ? (dd[1] ?? string.Empty).Trim() : string.Empty;
+					if (!string.IsNullOrWhiteSpace(left))
 						startDate = DateTime.Parse(left);
-					if (!String.IsNullOrWhiteSpace(right))
+					if (!string.IsNullOrWhiteSpace(right))
 						endDate = DateTime.Parse(right);
 				}
 			}
@@ -287,7 +287,7 @@ namespace System
 
 		public static DateTime From(object numerictime, Types expectedType, bool assertType, object date)
 		{
-			DateTime? d = date == null ? new DateTime?() : (DateTime)date;
+			var d = date == null ? new DateTime?() : (DateTime)date;
 
 			return From(From(numerictime, expectedType, assertType), d);
 		}
@@ -376,7 +376,7 @@ namespace System
 				throw new ArgumentException(nameof(factor));
 			Contract.EndContractBlock();
 
-			int remainder = reduction % factor;
+			var remainder = reduction % factor;
 			reduction = (reduction - remainder) / factor;
 			return remainder;
 		}
@@ -394,10 +394,10 @@ namespace System
 				throw new ArgumentOutOfRangeException(nameof(dddddd));
 			Contract.EndContractBlock();
 
-			int d = dddddd;
-			int seconds = (type == Types.HoursMinutesSeconds) ? Reduce(ref d) : 0;
-			int minutes = (type == Types.HoursMinutesSeconds || type == Types.HoursMinutes) ? Reduce(ref d) : 0;
-			int hours = Reduce(ref d);
+			var d = dddddd;
+			var seconds = (type == Types.HoursMinutesSeconds) ? Reduce(ref d) : 0;
+			var minutes = (type == Types.HoursMinutesSeconds || type == Types.HoursMinutes) ? Reduce(ref d) : 0;
+			var hours = Reduce(ref d);
 
 			return From(hours, minutes, seconds);
 		}
@@ -428,8 +428,8 @@ namespace System
 			Contract.EndContractBlock();
 
 			var d = (int)dddd;
-			int minutes = Reduce(ref d);
-			int hours = Reduce(ref d);
+			var minutes = Reduce(ref d);
+			var hours = Reduce(ref d);
 
 			return From(hours, minutes, 0);
 		}
