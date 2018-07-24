@@ -70,7 +70,7 @@ namespace System
 			var remaining = total - completed;
 			//Contract.Assume(remaining != int.MinValue || completed !=-1);
 
-			var m = remaining * target.ElapsedMilliseconds;
+			double m = remaining * target.ElapsedMilliseconds;
 			return TimeSpan.FromMilliseconds(m / completed);
 		}
 
@@ -121,6 +121,7 @@ namespace System
 							else
 							{
 								var ms = time.TotalMilliseconds;
+								// ReSharper disable once CompareOfFloatsByEqualityOperator
 								if (ms == 1 || ms.IsPreciseEqual(1))
 									result = "1 millisecond";
 								else
@@ -142,34 +143,29 @@ namespace System
 
 		public static DateTime Parse(string date, string time, DateTime defaultValue)
 		{
-			var result = defaultValue;
-			if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out result))
-			{
-				if (!string.IsNullOrWhiteSpace(time))
-				{
-					var ts = TimeSpan.Zero;
-					if (NumericTime.TimeDigitsPattern.IsMatch(time))
-						ts = NumericTime.FromUnknownType(time);
-					else
-						TimeSpan.TryParse(time, out ts);
+			if (string.IsNullOrWhiteSpace(date) || !DateTime.TryParse(date, out var result)) return defaultValue;
+			if (string.IsNullOrWhiteSpace(time)) return result;
 
-					if (ts != TimeSpan.Zero)
-					{
-						// Within range?
-						var ticks = result.Ticks + ts.Ticks;
+			TimeSpan ts;
+			if (NumericTime.TimeDigitsPattern.IsMatch(time))
+				ts = NumericTime.FromUnknownType(time);
+			else
+				TimeSpan.TryParse(time, out ts);
 
-						if (ticks < DateTime.MinValue.Ticks)
-							return DateTime.MinValue;
+			if (ts == TimeSpan.Zero)
+				return result;
 
-						if (ticks > DateTime.MaxValue.Ticks)
-							return DateTime.MaxValue;
+			// Within range?
+			var ticks = result.Ticks + ts.Ticks;
 
-						result.Add(ts);
-					}
-				}
+			if (ticks < DateTime.MinValue.Ticks)
+				return DateTime.MinValue;
 
-			}
-			return result;
+			// ReSharper disable once ConvertIfStatementToReturnStatement
+			if (ticks > DateTime.MaxValue.Ticks)
+				return DateTime.MaxValue;
+
+			return result.Add(ts);
 		}
 
 		public static Range<DateTime> ParseRange(string source, DateTime defaultStart, DateTime defaultEnd)
@@ -287,7 +283,9 @@ namespace System
 
 		public static DateTime From(object numerictime, Types expectedType, bool assertType, object date)
 		{
-			var d = date == null ? new DateTime?() : (DateTime)date;
+			var d = date as DateTime?;
+			if (!d.HasValue && date != null)
+				throw new InvalidCastException();
 
 			return From(From(numerictime, expectedType, assertType), d);
 		}
@@ -307,7 +305,7 @@ namespace System
 
 		public static TimeSpan From(string numerictime, Types type)
 		{
-			if (numerictime != null)
+			if (numerictime == null)
 				throw new ArgumentNullException(nameof(numerictime));
 			Contract.EndContractBlock();
 
@@ -316,10 +314,11 @@ namespace System
 
 		public static TimeSpan FromUnknownType(string numerictime)
 		{
-			if (numerictime != null)
+			if (numerictime == null)
 				throw new ArgumentNullException(nameof(numerictime));
 			if (numerictime.Length > 4)
 				return From(int.Parse(numerictime), Types.HoursMinutesSeconds);
+			// ReSharper disable once ConvertIfStatementToReturnStatement
 			if (numerictime.Length > 2)
 				return From(ushort.Parse(numerictime));
 
