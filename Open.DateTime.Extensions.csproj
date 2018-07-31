@@ -33,6 +33,6 @@ Code savers like: .Delta(time?)</Description>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Open.Numeric" Version="1.2.1" />
-    <PackageReference Include="Open.Range" Version="1.1.0" />
+    <PackageReference Include="Open.Range" Version="1.2.0" />
   </ItemGroup>
 </Project>
