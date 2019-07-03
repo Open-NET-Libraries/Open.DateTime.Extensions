@@ -7,17 +7,18 @@ Code savers like: .Delta(time?)</Description>
     <Authors>electricessence</Authors>
     <Company />
     <Product />
-    <PackageLicenseUrl>https://github.com/electricessence/Open.DateTime.Extensions/blob/master/LISCENSE.md</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Copyright>https://github.com/electricessence/Open.DateTime.Extensions/blob/master/LISCENSE.md</Copyright>
     <PackageProjectUrl>https://github.com/electricessence/Open.DateTime.Extensions/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/electricessence/Open.DateTime.Extensions/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, datetime, extensions</PackageTags>
-    <Version>1.1.1</Version>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.3</Version>
+    <AssemblyVersion>1.1.3.0</AssemblyVersion>
+    <FileVersion>1.1.3.0</FileVersion>
     <PackageReleaseNotes>Fixed improper validation checks.</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>latest</LangVersion>
@@ -32,7 +33,7 @@ Code savers like: .Delta(time?)</Description>
     <None Remove="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Open.Numeric" Version="1.2.1" />
+    <PackageReference Include="Open.Numeric" Version="2.0.1" />
     <PackageReference Include="Open.Range" Version="1.2.0" />
   </ItemGroup>
 </Project>
