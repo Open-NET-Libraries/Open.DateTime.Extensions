@@ -1,16 +1,17 @@
-﻿using Open;
+﻿using System;
+using Open.Text;
 using Open.Numeric.Precision;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
-namespace System
+namespace Open.DateTimeExtensions
 {
-	public static class DateTimeExtensions
+	public static class Extensions
 	{
 		public static DateTime FirstOfTheMonth(this DateTime date)
-			=> new DateTime(date.Year, date.Month, 1);
+		=> new(date.Year, date.Month, 1);
 
 		public static DateTime ToDateTime(this TimeSpan time)
 		{
@@ -23,18 +24,19 @@ namespace System
 		}
 
 		public static double ToOADate(this TimeSpan time)
-			=> (double)time.Ticks / TimeSpan.TicksPerDay;
+		=> (double)time.Ticks / TimeSpan.TicksPerDay;
 
 		public static double ToMilliseconds(this DateTime time)
-			=> TimeSpan.FromTicks(time.Ticks).TotalMilliseconds;
+		=> TimeSpan.FromTicks(time.Ticks).TotalMilliseconds;
 
 		public static string ToAlphaNumeric(this DateTime date)
-			=> date.ToString("yyyyMMddZHHmmssT", CultureInfo.InvariantCulture);
+		=> date.ToString("yyyyMMddZHHmmssT", CultureInfo.InvariantCulture);
 
 		public static TimeSpan ExcuteAndMeasureDuration(this Action closure)
 		{
 			if (closure is null)
-				throw new NullReferenceException();
+				throw new ArgumentNullException(nameof(closure));
+
 			Contract.EndContractBlock();
 
 			var stopwatch = new Stopwatch();
@@ -47,14 +49,16 @@ namespace System
 		public static string ElapsedTimeString(this Stopwatch target)
 		{
 			if (target is null)
-				throw new NullReferenceException();
+				throw new ArgumentNullException(nameof(target));
+			Contract.EndContractBlock();
+
 			return target.Elapsed.ToStringVerbose();
 		}
 
 		public static TimeSpan RemainingTime(this Stopwatch target, int completed, int total)
 		{
 			if (target is null)
-				throw new NullReferenceException();
+				throw new ArgumentNullException(nameof(target));
 			Contract.EndContractBlock();
 
 			if (completed == 0 || total == 0)
@@ -71,7 +75,7 @@ namespace System
 		public static string RemainingTimeString(this Stopwatch target, int completed, int total)
 		{
 			if (target is null)
-				throw new NullReferenceException();
+				throw new ArgumentNullException(nameof(target));
 			Contract.EndContractBlock();
 
 			return target.RemainingTime(completed, total).ToStringVerbose();
@@ -85,42 +89,47 @@ namespace System
 			if (minimumIncrement is null)
 				minimumIncrement = TimeSpan.FromSeconds(1);
 
-			if (time.Ticks <= 0) return string.Empty;
-
+			if (time.Ticks <= 0)
+				return string.Empty;
 			var isMinimum = time <= minimumIncrement;
 			var days = Math.Round(10 * time.TotalDays) / 10;
+
 			if (days > 2 || isMinimum && minimumIncrement >= TimeSpan.FromDays(1))
-				return days + " days";
+				return $"{days} days";
 
 			var hours = Math.Round(10 * time.TotalHours) / 10;
 			if (hours > 1 || isMinimum && minimumIncrement >= TimeSpan.FromHours(1))
-				return hours + " hours";
+				return $"{hours} hours";
 
 			var minutes = time.TotalMinutes;
 			if (minutes > 1.5 || isMinimum && minimumIncrement >= TimeSpan.FromMinutes(1))
-				return (minutes > 10 ? Math.Ceiling(minutes) : (Math.Ceiling(minutes * 10) / 10)) + " minutes";
+				return $"{(minutes > 10 ? Math.Ceiling(minutes) : (Math.Ceiling(minutes * 10) / 10))} minutes";
 
 			var seconds = time.TotalSeconds;
 			if (seconds.IsPreciseEqual(1) || isMinimum && minimumIncrement >= TimeSpan.FromSeconds(1))
 				return "1 second";
 
 			if (seconds > 1)
-				return Math.Ceiling(seconds) + " seconds";
+				return $"{Math.Ceiling(seconds)} seconds";
 
 			var ms = time.TotalMilliseconds;
 			// ReSharper disable once CompareOfFloatsByEqualityOperator
-			return ms == 1 || ms.IsPreciseEqual(1)
-				? "1 millisecond"
-				: (ms > 1
+			if (ms == 1 || ms.IsPreciseEqual(1))
+				return "1 millisecond";
+
+			return (ms > 1
 					? Math.Ceiling(ms).ToString("n0", formatProvider ?? CultureInfo.InvariantCulture)
 					: ms.ToString("n3", formatProvider ?? CultureInfo.InvariantCulture))
 					+ " milliseconds";
 		}
 
 		public static Range<DateTime> ParseRange(string source)
-			=> ParseRange(source, DateTime.MinValue, DateTime.MaxValue);
+		=> ParseRange(source, DateTime.MinValue, DateTime.MaxValue);
 
-		public static readonly Regex EXACTMONTH = new Regex(@"^(?<year>\d\d\d\d)/(?<month>\d\d?)$");
+		private const string CANNOT_BE_ZERO = "Cannot be zero.";
+
+		public static readonly Regex EXACTMONTH
+			= new(@"^(?<year>\d\d\d\d)/(?<month>\d\d?)$", RegexOptions.Compiled);
 
 		public static DateTime Parse(string date, string time, DateTime defaultValue, IFormatProvider? formatProvider = null)
 		{
@@ -149,34 +158,31 @@ namespace System
 
 		public static Range<DateTime> ParseRange(string source, DateTime defaultStart, DateTime defaultEnd, IFormatProvider? formatProvider = null)
 		{
+			if (string.IsNullOrWhiteSpace(source))
+				return new Range<DateTime>(defaultStart, defaultEnd);
+
+			if (EXACTMONTH.IsMatch(source))
+				return new Range<DateTime>(
+					DateTime.Parse($"{source}/1", formatProvider ?? CultureInfo.CurrentCulture),
+					defaultStart.AddMonths(1));
+
+			var left = source.FirstSplit('-', out int nextIndex).Trim();
+			var right = nextIndex == -1 ? ReadOnlySpan<char>.Empty : source.FirstSplit('-', out _, nextIndex).Trim();
+
 			var startDate = defaultStart;
 			var endDate = defaultEnd;
+			if (formatProvider is null) formatProvider = CultureInfo.InvariantCulture;
 
-			if (!string.IsNullOrWhiteSpace(source))
-			{
-				if (formatProvider is null) formatProvider = CultureInfo.InvariantCulture;
-				var exactMonth = EXACTMONTH.Match(source);
-				if (exactMonth.Success)
-				{
-					startDate = DateTime.Parse(source + "/1", formatProvider);
-					endDate = startDate.AddMonths(1);
-				}
-				else
-				{
-					var dd = source.Split('-');
-					var left = dd[0].Trim();
-					var right = dd.Length != 1 ? (dd[1] ?? string.Empty).Trim() : string.Empty;
-					if (!string.IsNullOrWhiteSpace(left))
-						startDate = DateTime.Parse(left, formatProvider);
-					if (!string.IsNullOrWhiteSpace(right))
-						endDate = DateTime.Parse(right, formatProvider);
-				}
-			}
+#if NETSTANDARD2_1_OR_GREATER
+			if (left.Length != 0) startDate = DateTime.Parse(left, formatProvider);
+			if (right.Length != 0) endDate = DateTime.Parse(right, formatProvider);
+#else
+			if (left.Length != 0) startDate = DateTime.Parse(left.ToString(), formatProvider);
+			if (right.Length != 0) endDate = DateTime.Parse(right.ToString(), formatProvider);
+#endif
 
 			return new Range<DateTime>(startDate, endDate);
 		}
-
-
 
 		public static TimeSpan Delta(this DateTime fromtime, DateTime? totime = null)
 		{
@@ -188,7 +194,7 @@ namespace System
 		public static TimeSpan DivideBy(this TimeSpan target, long divisor)
 		{
 			if (divisor == 0)
-				throw new ArgumentException("Cannot be zero.", nameof(divisor));
+				throw new ArgumentException(CANNOT_BE_ZERO, nameof(divisor));
 			Contract.EndContractBlock();
 
 			return TimeSpan.FromTicks(target.Ticks / divisor);
@@ -197,24 +203,22 @@ namespace System
 		public static TimeSpan DivideBy(this TimeSpan target, int divisor)
 		{
 			if (divisor == 0)
-				throw new ArgumentException("Cannot be zero.", nameof(divisor));
+				throw new ArgumentException(CANNOT_BE_ZERO, nameof(divisor));
 
 			return TimeSpan.FromTicks(target.Ticks / divisor);
 		}
 
 		public static TimeSpan MultiplyBy(this TimeSpan target, long divisor)
-			=> TimeSpan.FromTicks(target.Ticks * divisor);
+		=> TimeSpan.FromTicks(target.Ticks * divisor);
 
 		public static TimeSpan MultiplyBy(this TimeSpan target, int divisor)
-			=> TimeSpan.FromTicks(target.Ticks * divisor);
+		=> TimeSpan.FromTicks(target.Ticks * divisor);
 
 		public static bool IsInRange(this TimeSpan target, Range<TimeSpan> range)
-			=> target >= range.Low && target < range.High;
+		=> target >= range.Low && target < range.High;
 
 	}
 
-
-	[Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Special cases.")]
 	public static class NumericTime
 	{
 		#region Types enum
@@ -227,9 +231,10 @@ namespace System
 		#endregion
 
 
-		public static readonly Regex TimeDigitsPattern = new Regex(@"(\d?\d)(\d\d)(\d\d)?");
+		public static readonly Regex TimeDigitsPattern = new(@"(\d?\d)(\d\d)(\d\d)?", RegexOptions.Compiled);
 
-		public static TimeSpan From(object numerictime, Type expectedType, bool assertType)
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Unique")]
+		public static TimeSpan From(object numerictime, Type expectedType, bool assertType, IFormatProvider? formatProvider = null)
 		{
 			if (numerictime is string dddd)
 				return From(dddd, expectedType);
@@ -238,17 +243,19 @@ namespace System
 			{
 				case Type.HoursMinutesSeconds:
 					if (!assertType || numerictime is int)
-						return From(Convert.ToInt32(numerictime), expectedType);
+						return From(Convert.ToInt32(numerictime, formatProvider ?? CultureInfo.InvariantCulture), expectedType);
 					throw new InvalidOperationException(
 						"Attempting to convert to unexpected numeric time. (Expected: HoursMinutesSeconds)");
+
 				case Type.HoursMinutes:
 					if (!assertType || numerictime is ushort)
-						return From(Convert.ToUInt16(numerictime));
+						return From(Convert.ToUInt16(numerictime, formatProvider ?? CultureInfo.InvariantCulture));
 					throw new InvalidOperationException(
 						"Attempting to convert to unexpected numeric time. (Expected: HoursMinutes)");
+
 				case Type.Hours:
 					if (!assertType || numerictime is byte)
-						return From(Convert.ToByte(numerictime));
+						return From(Convert.ToByte(numerictime, formatProvider ?? CultureInfo.InvariantCulture));
 					throw new InvalidOperationException(
 						"Attempting to convert to unexpected numeric time. (Expected: Hours)");
 			}
@@ -266,74 +273,68 @@ namespace System
 		}
 
 		public static DateTime From(TimeSpan time, DateTime date)
-		{
-			return new DateTime(date.Year, date.Month, date.Day, time.Hours, time.Minutes, time.Seconds);
-		}
+		=> new(date.Year, date.Month, date.Day, time.Hours, time.Minutes, time.Seconds);
 
 		public static DateTime From(TimeSpan time, DateTime? date = null)
-		{
-			if (date is null)
-				date = default(DateTime);
+		=> From(time, date ?? default);
 
-			return From(time, date.Value);
-		}
-
-		public static TimeSpan From(string numerictime, Type type)
+		public static TimeSpan From(string numerictime, Type type, IFormatProvider? formatProvider = null)
 		{
 			if (numerictime is null)
 				throw new ArgumentNullException(nameof(numerictime));
 			Contract.EndContractBlock();
 
-			return From(int.Parse(numerictime), type);
+			return From(int.Parse(numerictime, formatProvider ?? CultureInfo.InvariantCulture), type);
 		}
 
-		public static TimeSpan FromUnknownType(string numerictime)
+		public static TimeSpan FromUnknownType(string numerictime, IFormatProvider? formatProvider = null)
 		{
 			if (numerictime is null)
 				throw new ArgumentNullException(nameof(numerictime));
 			if (numerictime.Length > 4)
-				return From(int.Parse(numerictime), Type.HoursMinutesSeconds);
+				return From(int.Parse(numerictime, formatProvider ?? CultureInfo.CurrentCulture), Type.HoursMinutesSeconds);
 			// ReSharper disable once ConvertIfStatementToReturnStatement
 			if (numerictime.Length > 2)
-				return From(ushort.Parse(numerictime));
+				return From(ushort.Parse(numerictime, formatProvider ?? CultureInfo.CurrentCulture));
 
-			return From(byte.Parse(numerictime));
+			return From(byte.Parse(numerictime, formatProvider ?? CultureInfo.CurrentCulture));
 		}
 
 
 		public static DateTime From(string dddd, Type expectedType, DateTime date)
 		{
-			if (dddd is null) throw new ArgumentNullException(nameof(dddd));
+			if (dddd is null)
+				throw new ArgumentNullException(nameof(dddd));
 			Contract.EndContractBlock();
 
 			return From(From(dddd, expectedType), date);
 		}
 
 		public static TimeSpan From(int hours, int minutes, int seconds)
-			=> TimeSpan.FromTicks(TimeSpan.TicksPerHour * hours + TimeSpan.TicksPerMinute * minutes +
-					TimeSpan.TicksPerSecond * seconds);
+		=> TimeSpan.FromTicks(TimeSpan.TicksPerHour * hours + TimeSpan.TicksPerMinute * minutes + TimeSpan.TicksPerSecond * seconds);
 
-		public static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		public static readonly DateTime Epoch
+			= new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
 		public static DateTime FromUnix(TimeSpan unixtimespan)
-			=> Epoch.Add(unixtimespan);
+		=> Epoch.Add(unixtimespan);
 
 		public static TimeSpan ToUnix(this DateTime date)
-			=> TimeSpan.FromTicks(date.Ticks - Epoch.Ticks);
+		=> TimeSpan.FromTicks(date.Ticks - Epoch.Ticks);
 
 		public static long ToUnixMilliseconds(this DateTime date)
-			=> Convert.ToInt64(TimeSpan.FromTicks(date.Ticks - Epoch.Ticks).TotalMilliseconds);
+		=> Convert.ToInt64(TimeSpan.FromTicks(date.Ticks - Epoch.Ticks).TotalMilliseconds);
 
 		public static DateTime FromUnixMilliseconds(long unixmilliseconds)
-			=> Epoch.AddMilliseconds(unixmilliseconds);
+		=> Epoch.AddMilliseconds(unixmilliseconds);
 
 		private static int Reduce(ref int reduction)
-			=> Reduce(ref reduction, 100);
+		=> Reduce(ref reduction, 100);
 
 		private static int Reduce(ref int reduction, int factor)
 		{
 			if (factor < 1)
-				throw new ArgumentOutOfRangeException(nameof(factor),factor, "Must be at least 1.");
+				throw new ArgumentOutOfRangeException(nameof(factor), factor, "Must be at least 1.");
 			Contract.EndContractBlock();
 
 			var remainder = reduction % factor;
@@ -365,17 +366,17 @@ namespace System
 		public static TimeSpan FromHoursMinutes(int? dddd)
 		{
 			if (dddd is null)
-				throw new NullReferenceException();
+				throw new ArgumentNullException(nameof(dddd));
 
 			return FromHoursMinutes(dddd.Value);
 		}
 
 
 		public static TimeSpan FromHoursMinutes(int dddd)
-			=> From(dddd, Type.HoursMinutes);
+		=> From(dddd, Type.HoursMinutes);
 
 		public static DateTime FromHoursMinutes(int dddd, DateTime? date)
-			=> From(FromHoursMinutes(dddd), date);
+		=> From(FromHoursMinutes(dddd), date);
 
 		public static TimeSpan From(ushort dddd)
 		{
@@ -400,24 +401,24 @@ namespace System
 		}
 
 		public static DateTime From(ushort dddd, DateTime date)
-			=> From(From(dddd), date);
+		=> From(From(dddd), date);
 
 		public static ushort ToNumericTime(this TimeSpan time)
-			=> (ushort)(time.Hours * 100 + time.Minutes);
+		=> (ushort)(time.Hours * 100 + time.Minutes);
 
 		public static ushort ToNumericTime(this DateTime time)
-			=> ToNumericTime(time.TimeOfDay);
+		=> ToNumericTime(time.TimeOfDay);
 
 		public static ushort ToNumericTime(this DateTimeOffset time)
-			=> ToNumericTime(time.TimeOfDay);
+		=> ToNumericTime(time.TimeOfDay);
 
 		public static int ToNumericTimeWithSeconds(this TimeSpan time)
-			=> time.Hours * 10000 + time.Minutes * 100 + time.Seconds;
+		=> time.Hours * 10000 + time.Minutes * 100 + time.Seconds;
 
 		public static int ToNumericTimeWithSeconds(this DateTime time)
-			=> ToNumericTimeWithSeconds(time.TimeOfDay);
+		=> ToNumericTimeWithSeconds(time.TimeOfDay);
 
 		public static int ToNumericTimeWithSeconds(this DateTimeOffset time)
-			=> ToNumericTimeWithSeconds(time.TimeOfDay);
+		=> ToNumericTimeWithSeconds(time.TimeOfDay);
 	}
 }
